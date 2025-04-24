@@ -1,0 +1,41 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #fefefe;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #333;
+}
+
+#chart {
+  width: 900px;
+  height: 600px;
+  margin: auto;
+}
+
+path {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+path:hover {
+  transform: scale(1.05);
+}
+
+.tooltip {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 14px;
+  position: absolute;
+  background-color: white;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  pointer-events: none;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  color: #333;
+  z-index: 10;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
