@@ -2,15 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Stacked Grouped Bar - Usia & Pengalaman vs Stres</title>
+  <title>Task 2: Usia & Pengalaman vs Stres</title>
   <link rel="stylesheet" href="css/task2.css" />
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
-<h2>📊 Pengaruh Usia dan Pengalaman terhadap  Tingkat Stres</h2>
-<svg width="900" height="450"></svg>
-<div class="tooltip"></div>
-<div class="legend" id="legend"></div>
-<script src="js/task2.js"></script>
+  <div class="chart-container">
+    <h2>Task 2: Hubungan Usia dan Pengalaman Kerja terhadap Tingkat Stres</h2>
+    <svg width="900" height="450"></svg>
+    <div class="caption-x">Kelompok Usia</div>
+    <div class="caption-y">Jumlah</div>
+    <div class="tooltip"></div>
+
+    <!-- legend di bawah chart -->
+    <ul id="legend-list" class="legend-list"></ul>
+
+    <!-- insights box ala Task 5 -->
+    <div id="insights" class="insights-box"></div>
+  </div>
+
+  <script src="js/task2.js"></script>
 </body>
 </html>
