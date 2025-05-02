@@ -1,0 +1,30 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f0f8ff;
+  }
+  
+  #chart {
+    width: 960px;
+    height: 500px;
+  }
+  
+  circle {
+    fill: steelblue;
+    opacity: 0.6;
+    transition: 0.2s;
+  }
+  
+  circle:hover {
+    fill: orange;
+    opacity: 1;
+  }
+  
+  .tooltip {
+    position: absolute;
+    background-color: white;
+    padding: 6px;
+    border: 1px solid #ccc;
+    font-size: 12px;
+    pointer-events: none;
+  }  
