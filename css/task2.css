@@ -1,6 +1,45 @@
 body {
   font-family: sans-serif;
   padding: 20px;
+  text-align: center;
+  background: #f9f9f9;
+}
+
+.chart-container {
+  position:relative;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h2 {
+  margin-bottom: 40px;
+}
+
+svg {
+  display: block;
+}
+
+.caption-x {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.caption-y {
+  position: absolute;
+  top: 32%;
+  left: 130px;             
+  transform: rotate(-90deg) translateY(-50%);
+  transform-origin: center;
+  font-weight: bold;
 }
 
 .tooltip {
@@ -14,20 +53,49 @@ body {
   display: none;
 }
 
-.legend {
-  margin-top: 15px;
-  font-size: 13px;
+/* legend di bawah chart */
+.legend-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
 }
-
-.legend-item {
-  display: inline-block;
-  margin-right: 15px;
+.legend-list li {
+  margin: 0 15px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
 }
-
-.legend-color {
+.legend-symbol {
   width: 12px;
   height: 12px;
+  margin-right: 6px;
   display: inline-block;
-  margin-right: 5px;
-  vertical-align: middle;
+  border-radius: 2px;
+}
+
+.insights-box {
+  width: 100%;
+  max-width: 900px;
+  margin-top: 20px;
+  text-align: left;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 15px 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.insights-box h3 {
+  margin-top: 0;
+}
+.insights-box ul {
+  column-count: 2;     
+  column-gap: 40px;    
+  padding-left: 10px;
+  margin: 10px 0 0 0;
+}
+
+.insights-box li {
+  margin-bottom: 8px;  
 }
