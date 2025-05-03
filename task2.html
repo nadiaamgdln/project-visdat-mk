@@ -23,4 +23,15 @@
 
   <script src="js/task2.js"></script>
 </body>
+<script>
+  function resizeParent() {
+    setTimeout(() => {
+      const height = document.documentElement.scrollHeight;
+      window.parent.postMessage({ type: "setHeight", height: height }, "*");
+    }, 100); // 100 ms delay
+  }
+
+  window.addEventListener("load", resizeParent);
+  window.addEventListener("resize", resizeParent);
+</script>
 </html>

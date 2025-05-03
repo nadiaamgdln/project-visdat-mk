@@ -1,0 +1,36 @@
+body {
+    font-family: sans-serif;
+    padding: 2rem;
+    background-color: #eaf3f8;
+    text-align: center;
+  }
+  
+  h1 {
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .buttons {
+    margin-bottom: 1.5rem;
+  }
+  
+  button {
+    margin: 0.3rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #a8d0e6;
+    color: #333;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button:hover {
+    background-color: #8bbad5; 
+  }
+  
+  iframe {
+    width: 100%;
+    border: none;
+    transition: height 0.3s ease;
+  }  

@@ -3,13 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Task 5 - Heatmap</title>
+  <title>Hubungan Frekuensi Meeting Virtual dan Tingkat Isolasi Sosial</title>
   <link rel="stylesheet" href="css/task5.css" />
 </head>
 <body>
-  <h2>Task 5: Virtual Meetings vs Social Isolation</h2>
-  <div id="heatmap"></div>
+  <div id="container">
+    <h1>Task 5: Hubungan Frekuensi Meeting Virtual dan Tingkat Isolasi Sosial</h1>
+    <div id="heatmap"></div>
+  </div>
+
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="js/task5.js"></script>
 </body>
+<script>
+  function resizeParent() {
+    setTimeout(() => {
+      const height = document.documentElement.scrollHeight;
+      window.parent.postMessage({ type: "setHeight", height: height }, "*");
+    }, 100); // 100 ms delay
+  }
+
+  window.addEventListener("load", resizeParent);
+  window.addEventListener("resize", resizeParent);
+</script>
 </html>
