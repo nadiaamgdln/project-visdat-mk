@@ -1,7 +1,7 @@
 d3.csv("data/cleaned_data.csv").then(function(data) {
   const margin = {top: 40, right: 20, bottom: 50, left: 60},
-        width = 700 - margin.left - margin.right,
-        height = 450 - margin.top - margin.bottom;
+        width = 1000 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
 
   const container = d3.select("#heatmap")
     .append("div")
