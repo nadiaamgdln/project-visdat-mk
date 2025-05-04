@@ -1,164 +1,104 @@
-const svg = d3.select("svg"),
-  margin = { top: 40, right: 30, bottom: 60, left: 60 },
-  width = parseInt(svg.style("width")) - margin.left - margin.right,
-  height = parseInt(svg.style("height")) - margin.top - margin.bottom;
+// Load the data (you can replace this with a fetch to your CSV)
+const data = [
+  { Employee_ID: "emp0001", Age: 32, Years_of_Experience: 13, Stress_Level: 2 },
+  { Employee_ID: "emp0002", Age: 40, Years_of_Experience: 3, Stress_Level: 2 },
+  // Add more data points here...
+];
 
-svg
-  .attr(
-    "viewBox",
-    `0 0 ${width + margin.left + margin.right} ${
-      height + margin.top + margin.bottom
-    }`
-  )
-  .attr("preserveAspectRatio", "xMidYMid meet");
+// Set up the margins, width, and height for the plot
+const margin = { top: 40, right: 40, bottom: 60, left: 60 };
+const width = 900 - margin.left - margin.right;
+const height = 500 - margin.top - margin.bottom;
 
-const g = svg
+// Create the SVG container for the scatter plot
+const svg = d3
+  .select("#scatterplot")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
   .append("g")
   .attr("transform", `translate(${margin.left},${margin.top})`);
 
-const tooltip = d3.select(".tooltip");
+// Set up the x and y scales based on the data range
+const x = d3
+  .scaleLinear()
+  .domain([d3.min(data, (d) => d.Age) - 1, d3.max(data, (d) => d.Age) + 1]) // X-axis: Age
+  .range([0, width]);
 
-const color = d3
-  .scaleOrdinal()
-  .domain(["Low", "Medium", "High"])
-  .range(["#7FD671", "#FFF176", "#f44d4d"]);
+const y = d3
+  .scaleLinear()
+  .domain([
+    d3.min(data, (d) => d.Years_of_Experience) - 1,
+    d3.max(data, (d) => d.Years_of_Experience) + 1,
+  ]) // Y-axis: Years of Experience
+  .range([height, 0]);
 
-d3.csv("data/cleaned_data.csv").then((data) => {
-  data.forEach((d) => {
-    d.Age = +d.Age;
-    d.Years_of_Experience = +d.Years_of_Experience;
-    d.Stress_Level = +d.Stress_Level;
+// Set up the color scale for Stress Level
+const color = d3.scaleSequential(d3.interpolateReds).domain([1, 4]); // Stress levels from 1 (low) to 4 (high)
+
+// Create the scatter plot circles
+svg
+  .selectAll(".dot")
+  .data(data)
+  .enter()
+  .append("circle")
+  .attr("class", "dot")
+  .attr("cx", (d) => x(d.Age))
+  .attr("cy", (d) => y(d.Years_of_Experience))
+  .attr("r", 8) // Adjust the size of the points
+  .style("fill", (d) => color(d.Stress_Level))
+  .style("stroke", "#fff")
+  .style("stroke-width", 1.5)
+  .on("mouseover", function (event, d) {
+    const tooltip = d3.select("#tooltip");
+    tooltip.style("display", "block").html(`
+        <div><strong>Employee ID:</strong> ${d.Employee_ID}</div>
+        <div><strong>Age:</strong> ${d.Age}</div>
+        <div><strong>Experience:</strong> ${d.Years_of_Experience} years</div>
+        <div><strong>Stress Level:</strong> ${d.Stress_Level}</div>
+      `);
+  })
+  .on("mousemove", function (event) {
+    const tooltip = d3.select("#tooltip");
+    tooltip
+      .style("left", event.pageX + 10 + "px")
+      .style("top", event.pageY - 50 + "px");
+  })
+  .on("mouseout", function () {
+    d3.select("#tooltip").style("display", "none");
   });
 
-  const ageGroups = [
-    { label: "20–29", range: [20, 29] },
-    { label: "30–39", range: [30, 39] },
-    { label: "40–49", range: [40, 49] },
-    { label: "50–59", range: [50, 59] },
-  ];
-  const expGroups = [
-    { label: "0–4", range: [0, 4] },
-    { label: "5–9", range: [5, 9] },
-    { label: "10+", range: [10, 100] },
-  ];
+// Add x and y axis
+svg
+  .append("g")
+  .attr("class", "x axis")
+  .attr("transform", `translate(0,${height})`)
+  .call(d3.axisBottom(x).ticks(5))
+  .append("text")
+  .attr("x", width / 2)
+  .attr("y", 35)
+  .attr("fill", "#333")
+  .style("text-anchor", "middle")
+  .text("Age");
 
-  function categorizeStress(l) {
-    return l === 1 ? "Low" : l === 2 ? "Medium" : l === 3 ? "High" : "Unknown";
-  }
+svg
+  .append("g")
+  .attr("class", "y axis")
+  .call(d3.axisLeft(y).ticks(5))
+  .append("text")
+  .attr("x", -40)
+  .attr("y", height / 2)
+  .attr("fill", "#333")
+  .style("text-anchor", "middle")
+  .attr("transform", "rotate(-90)")
+  .text("Years of Experience");
 
-  // 1) hitung per kombinasi usia+pengalaman
-  const nested = [];
-  ageGroups.forEach((a) => {
-    expGroups.forEach((e) => {
-      const cnt = { age: a.label, exp: e.label, Low: 0, Medium: 0, High: 0 };
-      data.forEach((d) => {
-        if (
-          d.Age >= a.range[0] &&
-          d.Age <= a.range[1] &&
-          d.Years_of_Experience >= e.range[0] &&
-          d.Years_of_Experience <= e.range[1]
-        ) {
-          cnt[categorizeStress(d.Stress_Level)]++;
-        }
-      });
-      nested.push(cnt);
-    });
-  });
-
-  // 2) scales & axes
-  const keys = ["Low", "Medium", "High"];
-  const x0 = d3
-    .scaleBand()
-    .domain(ageGroups.map((d) => d.label))
-    .range([0, width])
-    .paddingInner(0.2);
-  const x1 = d3
-    .scaleBand()
-    .domain(expGroups.map((d) => d.label))
-    .range([0, x0.bandwidth()])
-    .padding(0.1);
-  const y = d3
-    .scaleLinear()
-    .domain([0, d3.max(nested, (d) => d.Low + d.Medium + d.High)])
-    .nice()
-    .range([height, 0]);
-
-  g.append("g")
-    .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(x0))
-    .selectAll("text")
-    .style("font-size", "12px");
-
-  g.append("g")
-    .call(d3.axisLeft(y))
-    .selectAll("text")
-    .style("font-size", "12px");
-
-  // 3) draw bars
-  const seriesByAge = d3.group(nested, (d) => d.age);
-  const stack = d3.stack().keys(keys);
-
-  for (const [age, group] of seriesByAge) {
-    const grp = g.append("g").attr("transform", `translate(${x0(age)},0)`);
-    const series = stack(group);
-
-    grp
-      .selectAll("g")
-      .data(series)
-      .enter()
-      .append("g")
-      .attr("fill", (d) => color(d.key))
-      .selectAll("rect")
-      .data((d) => d)
-      .enter()
-      .append("rect")
-      .attr("x", (d) => x1(d.data.exp))
-      .attr("y", (d) => y(d[1]))
-      .attr("height", (d) => y(d[0]) - y(d[1]))
-      .attr("width", x1.bandwidth())
-      .on("mouseover", (e, d) => {
-        const t = d3.select(e.target.parentNode).datum().key;
-        tooltip
-          .style("display", "block")
-          .html(
-            `Usia: ${d.data.age}<br>Pengalaman: ${d.data.exp} tahun<br>Stres: ${t}<br>Jumlah: ${d.data[t]}`
-          );
-      })
-      .on("mousemove", (e) => {
-        const tip = tooltip.node();
-        const tw = tip ? tip.offsetWidth : 0;
-        const container = document.querySelector(".chart-container");
-        const rect = container.getBoundingClientRect();
-
-        // posisi kursor relatif ke container
-        let x = e.clientX - rect.left + 10;
-        let y = e.clientY - rect.top - 20;
-
-        // flip kalau terlalu mepet kanan container
-        if (e.clientX + tw + 20 > rect.right) {
-          x = e.clientX - rect.left - tw - 10;
-        }
-
-        tooltip.style("left", x + "px").style("top", y + "px");
-      })
-      .on("mouseout", () => tooltip.style("display", "none"));
-  }
-
-  // 4) render legend di <ul id="legend-list">
-  const legendList = d3.select("#legend-list");
-  keys.forEach((k) => {
-    const li = legendList.append("li");
-    li.append("span")
-      .attr("class", "legend-symbol")
-      .style("background-color", color(k));
-    li.append("span").text(` ${k} Stress`);
-  });
-
-  // 5) isi insights ala Task 5
-  let html = "<h3>Keterangan:</h3><ul>";
-  nested.forEach((d) => {
-    html += `<li>Usia ${d.age}, Pengalaman ${d.exp} tahun: Low ${d.Low}, Medium ${d.Medium}, High ${d.High}</li>`;
-  });
-  html += "</ul>";
-  document.getElementById("insights").innerHTML = html;
-});
+// Add title to the scatter plot
+svg
+  .append("text")
+  .attr("x", width / 2)
+  .attr("y", -20)
+  .attr("text-anchor", "middle")
+  .style("font-size", "18px")
+  .style("font-weight", "bold")
+  .text("Usia dan Pengalaman Kerja vs Tingkat Stres");

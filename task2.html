@@ -2,36 +2,114 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Task 2: Usia & Pengalaman vs Stres</title>
-  <link rel="stylesheet" href="css/task2.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scatterplot Usia vs Pengalaman</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    .tooltip {
+      position: absolute;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border-radius: 4px;
+      pointer-events: none;
+      font-size: 12px;
+    }
+    .axis-label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <div class="chart-container">
-    <h2>Task 2: Hubungan Usia dan Pengalaman Kerja terhadap Tingkat Stres</h2>
-    <svg width="900" height="450"></svg>
-    <div class="caption-x">Kelompok Usia</div>
-    <div class="caption-y">Jumlah</div>
-    <div class="tooltip"></div>
+  <h2>Scatterplot Usia vs Pengalaman Kerja (Ukuran = Tingkat Stres)</h2>
+  <svg id="chart" width="800" height="600"></svg>
 
-    <!-- legend di bawah chart -->
-    <ul id="legend-list" class="legend-list"></ul>
+  <script>
+    const svg = d3.select("#chart"),
+          margin = { top: 40, right: 30, bottom: 60, left: 60 },
+          width = +svg.attr("width") - margin.left - margin.right,
+          height = +svg.attr("height") - margin.top - margin.bottom;
 
-    <!-- insights box ala Task 5 -->
-    <div id="insights" class="insights-box"></div>
-  </div>
+    const chartArea = svg.append("g")
+                         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  <script src="js/task2.js"></script>
+    const tooltip = d3.select("body").append("div")
+                      .attr("class", "tooltip")
+                      .style("opacity", 0);
+
+    d3.csv("data/cleaned_data.csv").then(data => {
+      data.forEach(d => {
+        d.Age = +d.Age;
+        d.Years_of_Experience = +d.Years_of_Experience;
+        d.Stress_Level = +d.Stress_Level;
+      });
+
+      const x = d3.scaleLinear()
+                  .domain(d3.extent(data, d => d.Age)).nice()
+                  .range([0, width]);
+
+      const y = d3.scaleLinear()
+                  .domain(d3.extent(data, d => d.Years_of_Experience)).nice()
+                  .range([height, 0]);
+
+      const radius = d3.scaleSqrt()
+                       .domain(d3.extent(data, d => d.Stress_Level))
+                       .range([4, 20]);
+
+      const color = d3.scaleSequential()
+                      .domain(d3.extent(data, d => d.Stress_Level))
+                      .interpolator(d3.interpolateReds);
+
+      chartArea.append("g")
+               .attr("transform", `translate(0,${height})`)
+               .call(d3.axisBottom(x));
+
+      chartArea.append("g")
+               .call(d3.axisLeft(y));
+
+      svg.append("text")
+         .attr("class", "axis-label")
+         .attr("x", margin.left + width / 2)
+         .attr("y", height + margin.top + 40)
+         .attr("text-anchor", "middle")
+         .text("Usia");
+
+      svg.append("text")
+         .attr("class", "axis-label")
+         .attr("transform", "rotate(-90)")
+         .attr("x", -margin.top - height / 2)
+         .attr("y", 15)
+         .attr("text-anchor", "middle")
+         .text("Pengalaman Kerja (Tahun)");
+
+      chartArea.selectAll("circle")
+        .data(data)
+        .join("circle")
+        .attr("cx", d => x(d.Age))
+        .attr("cy", d => y(d.Years_of_Experience))
+        .attr("r", d => radius(d.Stress_Level))
+        .attr("fill", d => color(d.Stress_Level))
+        .attr("opacity", 0.7)
+        .on("mouseover", (event, d) => {
+          tooltip.transition().duration(200).style("opacity", 0.9);
+          tooltip.html(`
+            <strong>Usia:</strong> ${d.Age}<br/>
+            <strong>Pengalaman:</strong> ${d.Years_of_Experience} tahun<br/>
+            <strong>Stres:</strong> ${d.Stress_Level}
+          `)
+          .style("left", event.pageX + 10 + "px")
+          .style("top", event.pageY - 28 + "px");
+        })
+        .on("mouseout", () => {
+          tooltip.transition().duration(500).style("opacity", 0);
+        });
+    });
+  </script>
 </body>
-<script>
-  function resizeParent() {
-    setTimeout(() => {
-      const height = document.documentElement.scrollHeight;
-      window.parent.postMessage({ type: "setHeight", height: height }, "*");
-    }, 100); // 100 ms delay
-  }
-
-  window.addEventListener("load", resizeParent);
-  window.addEventListener("resize", resizeParent);
-</script>
 </html>
