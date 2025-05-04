@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Task 8: Kualitas Tidur & Stres (Nested Donut)</title>
+  <title>Task 8: Hubungan Kualitas Tidur & Tingkat Stres</title>
   <link rel="stylesheet" href="css/task8.css" />
+  <script src="js/d3.v6.min.js"></script>
 </head>
 <body>
   <div class="task-card">
@@ -17,14 +18,23 @@
           <em>poor</em> = tidur buruk,  
           <em>average</em> = tidur sedang,  
           <em>good</em> = tidur baik</li>
-        <li><strong>Persentase Responden</strong>: proporsi per kategori dan per level stres (%)</li>
+        <li><strong>Tingkat Stres</strong>: persentase responden per level stres (1 = tinggi, 2 = sedang, 3 = rendah)</li>
       </ul>
     </div>
   </div>
 
+  <!-- Tooltip container -->
   <div class="tooltip"></div>
 
-  <script src="js/d3.v6.min.js"></script>
   <script src="js/task8.js"></script>
+  <script>
+    // agar height parent iframe menyesuaikan
+    function resizeParent() {
+      const height = document.documentElement.scrollHeight;
+      window.parent.postMessage({ type: "setHeight", height }, "*");
+    }
+    window.addEventListener("load", resizeParent);
+    window.addEventListener("resize", resizeParent);
+  </script>
 </body>
 </html>

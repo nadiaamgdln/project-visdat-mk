@@ -1,135 +1,152 @@
 // ===== js/task8.js =====
-const width  = 900;
-const height = 500;
-const radius = Math.min(width, height) / 2 - 40;
+const margin = { top: 60, right: 140, bottom: 60, left: 60 },
+      width  = 900 - margin.left - margin.right,
+      height = 450 - margin.top  - margin.bottom;
 
-// buat SVG group di tengah
+// buat SVG container
 const svg = d3.select("#chart")
   .append("svg")
-    .attr("width",  width)
-    .attr("height", height)
+    .attr("width",  width + margin.left + margin.right)
+    .attr("height", height + margin.top  + margin.bottom)
   .append("g")
-    .attr("transform", `translate(${width/2},${height/2})`);
+    .attr("transform", `translate(${margin.left},${margin.top})`);
 
-// skema warna
-const colorCat = d3.scaleOrdinal()
-  .domain(["poor","average","good"])
-  .range(["#6baed6","#31a354","#e6550d"]);
-const colorLvl = d3.scaleOrdinal()
-  .domain(["1","2","3"])
-  .range(["#deebf7","#bae4b3","#fdae6b"]);
+// kategori & level stres
+const categories = ["poor","average","good"];
+const levels     = [1,2,3];
 
-// tooltip
+// palet warna
+const color = d3.scaleOrdinal()
+  .domain(levels)
+  .range(d3.schemeSet1);
+
+// siapkan tooltip
 const tooltip = d3.select(".tooltip");
 
-// muat data dan render nested donut
 d3.csv("data/cleaned_data.csv").then(data => {
-  // hitung total per kategori
-  const cats = ["poor","average","good"];
-  const lvls = ["1","2","3"];
-  const catCounts = {};
-  cats.forEach(cat => {
-    catCounts[cat] = data.filter(d => d.Sleep_Quality === cat).length;
+  // hitung frekuensi per kategori & level
+  const counts = d3.rollups(
+    data,
+    v => v.length,
+    d => d.Sleep_Quality,
+    d => +d.Stress_Level
+  );
+  const totalByCat = {};
+  counts.forEach(([cat, arr]) => {
+    totalByCat[cat] = d3.sum(arr, d => d[1]);
   });
 
-  // susun array nested: tiap kombinasi category×level
-  const nested = cats.flatMap(cat => {
-    const arr = data.filter(d => d.Sleep_Quality === cat);
-    return lvls.map(lvl => ({
-      category: cat,
-      level:     lvl,
-      count:     arr.filter(d => d.Stress_Level === lvl).length
-    }));
-  });
-
-  // data untuk inner ring (kategori saja)
-  const innerData = cats.map(cat => ({
-    category: cat,
-    count:    catCounts[cat]
+  // susun data untuk tiap garis, sertakan pct + count
+  const lineData = levels.map(level => ({
+    level,
+    values: categories.map(cat => {
+      const arr = counts.find(d => d[0] === cat)[1];
+      const cnt = (arr.find(x => x[0] === level) || [level,0])[1];
+      return {
+        category: cat,
+        pct:   cnt / totalByCat[cat] * 100,
+        count: cnt
+      };
+    })
   }));
 
-  // pie generator tanpa sorting
-  const pie = d3.pie()
-    .value(d => d.count)
-    .sort(null);
+  // skala X & Y
+  const x = d3.scalePoint()
+    .domain(categories)
+    .range([0, width])
+    .padding(0.5);
 
-  // arc untuk inner & outer
-  const arcInner = d3.arc()
-    .innerRadius(radius * 0.4)
-    .outerRadius(radius * 0.7);
-  const arcOuter = d3.arc()
-    .innerRadius(radius * 0.72)
-    .outerRadius(radius * 0.95);
+  const yMax = d3.max(lineData, ld => d3.max(ld.values, v => v.pct));
+  const y = d3.scaleLinear()
+    .domain([0, yMax + 10])
+    .range([height, 0])
+    .nice();
 
-  // gambar inner donut (kategori)
+  // grid horizontal
   svg.append("g")
-    .selectAll("path")
-    .data(pie(innerData))
-    .enter().append("path")
-      .attr("d", arcInner)
-      .attr("fill", d => colorCat(d.data.category))
-      .on("mouseover", (e,d) => {
+    .attr("class","grid")
+    .call(d3.axisLeft(y)
+      .ticks(6)
+      .tickSize(-width)
+      .tickFormat("")
+    );
+
+  // gambar sumbu X & Y
+  svg.append("g")
+    .attr("transform",`translate(0,${height})`)
+    .call(d3.axisBottom(x).tickSizeOuter(0));
+
+  svg.append("g")
+    .call(d3.axisLeft(y).ticks(6).tickFormat(d=>d+"%"));
+
+  // label axis
+  svg.append("text")
+    .attr("x", width/2).attr("y", height+margin.bottom-10)
+    .attr("text-anchor","middle")
+    .text("Kualitas Tidur");
+  svg.append("text")
+    .attr("transform","rotate(-90)")
+    .attr("x",-height/2).attr("y",-margin.left+15)
+    .attr("text-anchor","middle")
+    .text("Persentase Responden (%)");
+
+  // line generator smooth
+  const line = d3.line()
+    .curve(d3.curveMonotoneX)
+    .x(d=>x(d.category))
+    .y(d=>y(d.pct));
+
+  // gambar garis, titik, dan tooltip
+  lineData.forEach(ld => {
+    // path
+    svg.append("path")
+      .datum(ld.values)
+      .attr("fill","none")
+      .attr("stroke",color(ld.level))
+      .attr("stroke-width",3)
+      .attr("d",line);
+
+    // titik
+    svg.selectAll(`.dot-level-${ld.level}`)
+      .data(ld.values)
+      .enter()
+      .append("circle")
+        .attr("class",`dot-level-${ld.level}`)
+        .attr("cx",d=>x(d.category))
+        .attr("cy",d=>y(d.pct))
+        .attr("r",6)
+        .attr("fill",color(ld.level))
+        .attr("stroke","#fff")
+        .attr("stroke-width",2)
+      .on("mouseover", (event, d) => {
         tooltip
           .style("opacity",1)
-          .html(`
-            <strong>Kategori Tidur: ${d.data.category}</strong>
-            <br>Jumlah Responden: ${d.data.count}
-            <br>Proporsi: ${(d.data.count/data.length*100).toFixed(1)}%
-          `)
-          .style("left", (e.pageX+10)+"px")
-          .style("top",  (e.pageY-30)+"px");
+          .html(
+            `<strong>${d.category}</strong><br>` +
+            `Jumlah Responden: ${d.count}<br>` +
+            `${d.pct.toFixed(1)}%`
+          )
+          .style("left", (event.pageX + 10) + "px")
+          .style("top",  (event.pageY - 30) + "px");
       })
-      .on("mouseout", () => tooltip.style("opacity",0));
+      .on("mouseout", () => {
+        tooltip.style("opacity",0);
+      });
+  });
 
-  // gambar outer donut (stres level dalam tiap kategori)
-  svg.append("g")
-    .selectAll("path")
-    .data(pie(nested))
-    .enter().append("path")
-      .attr("d", arcOuter)
-      .attr("fill", d => colorLvl(d.data.level))
-      .on("mouseover", (e,d) => {
-        tooltip
-          .style("opacity",1)
-          .html(`
-            <strong>Stres Level: ${d.data.level}</strong>
-            <br>Kategori Tidur: ${d.data.category}
-            <br>Jumlah Responden: ${d.data.count}
-            <br>Proporsi: ${(d.data.count/catCounts[d.data.category]*100).toFixed(1)}%
-          `)
-          .style("left", (e.pageX+10)+"px")
-          .style("top",  (e.pageY-30)+"px");
-      })
-      .on("mouseout", () => tooltip.style("opacity",0));
-
-  // legend di kanan
+  // legend
   const legend = svg.append("g")
-    .attr("transform", `translate(${radius+20}, -${radius})`);
-
-  // legend kategori
-  cats.forEach((cat,i) => {
+    .attr("transform",`translate(${width+20},0)`);
+  levels.forEach((lvl,i) => {
     const g = legend.append("g")
-      .attr("transform", `translate(0, ${i*20})`);
+      .attr("transform",`translate(0,${i*25})`);
     g.append("rect")
-      .attr("width", 14).attr("height", 14)
-      .attr("fill", colorCat(cat));
+      .attr("class","legend-color")
+      .attr("fill",color(lvl));
     g.append("text")
-      .attr("x", 18).attr("y", 12)
-      .text(`Tidur: ${cat}`)
-      .style("font-size","12px");
+      .attr("x",20).attr("y",12)
+      .attr("class","legend")
+      .text(`Stres Level ${lvl}`);
   });
 
-  // legend stres level
-  lvls.forEach((lvl,i) => {
-    const g = legend.append("g")
-      .attr("transform", `translate(0, ${cats.length*20 + i*20 + 10})`);
-    g.append("rect")
-      .attr("width", 14).attr("height", 14)
-      .attr("fill", colorLvl(lvl));
-    g.append("text")
-      .attr("x", 18).attr("y", 12)
-      .text(`Stres Level ${lvl}`)
-      .style("font-size","12px");
-  });
-})
-.catch(err => console.error("Error loading data:", err));
+}).catch(err => console.error(err));
