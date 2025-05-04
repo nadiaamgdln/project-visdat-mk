@@ -12,6 +12,7 @@ h1 {
   text-align: center;
   margin-bottom: 40px;
   color: #333;
+  font-size: 24px;
 }
 
 #container {
@@ -23,38 +24,34 @@ h1 {
   box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.1);
 }
 
-#heatmap {
+#scatterplot {
   max-width: 100%;
   margin: auto;
   overflow-x: auto;
 }
 
-#heatmap svg {
+#scatterplot svg {
   display: block;
   margin: auto;
-}
-
-.cell {
-  stroke: white;
-  stroke-width: 1px;
-  cursor: pointer;
 }
 
 .axis-label {
   font-size: 14px;
   fill: #333;
-  font-weight: bold;  /* Bold untuk label sumbu */
-}
-
-.legend rect {
-  stroke: #ccc;
-  stroke-width: 1px;
-}
-
-.legend text {
-  font-size: 14px;
   font-weight: bold;
-  fill: #333;
+}
+
+circle.dot {
+  stroke: #fff;
+  stroke-width: 1px;
+  cursor: pointer;
+  transition: r 0.2s ease;
+}
+
+circle.dot:hover {
+  stroke: #000;
+  stroke-width: 2px;
+  r: 8;
 }
 
 /* Tooltip */
@@ -70,15 +67,4 @@ h1 {
   transition: opacity 0.2s ease, transform 0.2s ease;
   transform: translateY(0px);
   z-index: 999;
-}
-
-.tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 15px;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: rgba(255, 255, 255, 0.95) transparent transparent transparent;
 }

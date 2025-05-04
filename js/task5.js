@@ -1,140 +1,174 @@
-const margin = { top: 80, right: 30, bottom: 50, left: 70 };
-const width = 1000 - margin.left - margin.right;
-const height = 500 - margin.top - margin.bottom;
+// Set dimensions dan margin
+const margin = { top: 40, right: 30, bottom: 100, left: 60 },
+  width = 1000 - margin.left - margin.right,
+  height = 500 - margin.top - margin.bottom;
 
-const svg = d3.select("#heatmap")
+// Buat SVG
+const svg = d3
+  .select("#scatterplot")
   .append("svg")
-  .attr("width", width + margin.left + margin.right)
-  .attr("height", height + margin.top + margin.bottom)
+  .attr(
+    "viewBox",
+    `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom + 40}`
+  )
+  .attr("preserveAspectRatio", "xMidYMid meet")
   .append("g")
   .attr("transform", `translate(${margin.left},${margin.top})`);
 
 // Tooltip
-const tooltip = d3.select("body")
+const tooltip = d3
+  .select("#scatterplot")
   .append("div")
-  .attr("class", "tooltip");
+  .attr("class", "tooltip")
+  .style("position", "absolute")
+  .style("opacity", 0)
+  .style("background", "#fff")
+  .style("border", "1px solid #ccc")
+  .style("padding", "6px")
+  .style("border-radius", "4px")
+  .style("pointer-events", "none");
 
-d3.csv("data/cleaned_data.csv").then(data => {
-  const nested = d3.rollup(
+// Load data
+d3.csv("data/cleaned_data.csv").then((data) => {
+  data.forEach((d) => {
+    d["Number_of_Virtual_Meetings"] = +d["Number_of_Virtual_Meetings"];
+    d["Social_Isolation_Rating"] = +d["Social_Isolation_Rating"];
+  });
+
+  const groupedData = d3.rollups(
     data,
     v => v.length,
-    d => d.Number_of_Virtual_Meetings,
-    d => d.Social_Isolation_Rating
+    d => d["Number_of_Virtual_Meetings"],
+    d => d["Social_Isolation_Rating"]
+  ).flatMap(([x, ys]) =>
+    ys.map(([y, count]) => ({
+      x: +x,
+      y: +y,
+      count: count
+    }))
   );
 
-  const meetings = Array.from(new Set(data.map(d => d.Number_of_Virtual_Meetings))).sort((a, b) => +a - +b);
-  const isolations = Array.from(new Set(data.map(d => d.Social_Isolation_Rating))).sort((a, b) => +a - +b);
+  // Skala
+  const x = d3
+    .scaleLinear()
+    .domain([0, d3.max(data, d => d["Number_of_Virtual_Meetings"])])
+    .range([0, width]);
 
-  const x = d3.scaleBand().domain(meetings).range([0, width]).padding(0.05);
-  const y = d3.scaleBand().domain(isolations).range([height, 0]).padding(0.05);
+  const y = d3
+    .scaleLinear()
+    .domain([1, 5]) 
+    .range([height, 0]);
 
-  const colorScale = d3.scaleSequential()
-    .interpolator(d3.interpolateYlGnBu)
-    .domain([0, d3.max(data, d => nested.get(d.Number_of_Virtual_Meetings)?.get(d.Social_Isolation_Rating) || 0)]);
+  const color = d3
+    .scaleSequential()
+    .domain([0, d3.max(groupedData, d => d.count)])
+    .interpolator(d3.interpolateBlues); 
 
-  svg.append("g").call(d3.axisLeft(y));
-  svg.append("g").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(x));
+  svg.append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(
+      d3.axisBottom(x)
+        .tickValues(d3.range(0, d3.max(data, d => d["Number_of_Virtual_Meetings"]) + 1))
+        .tickFormat(d3.format("d"))
+    );
 
-  for (let [meetKey, innerMap] of nested.entries()) {
-    for (let [isoKey, count] of innerMap.entries()) {
-      svg.append("rect")
-        .attr("x", x(meetKey))
-        .attr("y", y(isoKey))
-        .attr("width", x.bandwidth())
-        .attr("height", y.bandwidth())
-        .attr("fill", colorScale(count))
-        .attr("class", "cell")
-        .on("mouseover", function (event) {
-          d3.select(this).attr("stroke", "#000").attr("stroke-width", 2);
-          tooltip
-            .style("opacity", 1)
-            .style("transform", "translateY(-5px)") // animasi naik dikit
-            .html(`
-              <strong>Virtual Meetings:</strong> ${meetKey}<br/>
-              <strong>Isolation Rating:</strong> ${isoKey}<br/>
-              <strong>Jumlah Data:</strong> ${count}
-            `)
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 30) + "px");
-        })
-        .on("mousemove", function (event) {
-          tooltip
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 30) + "px");
-        })
-        .on("mouseout", function () {
-          d3.select(this).attr("stroke", "white").attr("stroke-width", 1);
-          tooltip
-            .style("opacity", 0)
-            .style("transform", "translateY(0px)"); // reset posisi animasi
-        });
-    }
-  }
+  svg.append("g")
+    .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format("d")));
 
+  // Label sumbu
   svg.append("text")
     .attr("x", width / 2)
-    .attr("y", height + 40)
-    .attr("text-anchor", "middle")
-    .attr("class", "axis-label")
-    .style("font-weight", "bold") // Menambahkan bold
-    .text("Number of Virtual Meetings");
+    .attr("y", height + 50)
+    .style("text-anchor", "middle")
+    .style("font-weight", "bold")
+    .text("Jumlah Virtual Meeting per Minggu");
 
   svg.append("text")
     .attr("transform", "rotate(-90)")
+    .attr("y", -45)
     .attr("x", -height / 2)
-    .attr("y", -50)
-    .attr("text-anchor", "middle")
-    .attr("class", "axis-label")
-    .style("font-weight", "bold") // Menambahkan bold
-    .text("Social Isolation Rating");
+    .style("text-anchor", "middle")
+    .style("font-weight", "bold")
+    .text("Tingkat Isolasi Sosial");
+
+  svg.selectAll("circle.dot")
+    .data(groupedData)
+    .enter()
+    .append("circle")
+    .attr("class", "dot")
+    .attr("cx", d => x(d.x))
+    .attr("cy", d => y(d.y))
+    .attr("r", 8)
+    .attr("fill", d => color(d.count))
+    .on("mouseover", (event, d) => {
+      tooltip
+        .style("opacity", 1)
+        .html(`Virtual Meeting: ${d.x}<br>Isolasi Sosial: ${d.y}<br>Jumlah Orang: ${d.count}`)
+        .style("left", event.pageX + 10 + "px")
+        .style("top", event.pageY - 28 + "px");
+    })
+    .on("mousemove", (event) => {
+      const tooltipWidth = tooltip.node().offsetWidth;
+      const tooltipHeight = tooltip.node().offsetHeight;
+      let xPos = event.pageX + 10;
+      let yPos = event.pageY - 28;
+
+      if (xPos + tooltipWidth > window.innerWidth) {
+        xPos = event.pageX - tooltipWidth - 10;
+      }
+      if (yPos < 0) {
+        yPos = event.pageY + 10;
+      }
+
+      tooltip.style("left", xPos + "px").style("top", yPos + "px");
+    })
+    .on("mouseout", () => {
+      tooltip.style("opacity", 0);
+    });
+
+  svg.selectAll(".tick text")
+    .style("font-size", "16px")
+    .style("font-weight", "bold");
 
   // Legend
-  const legendWidth = 300; // Lebar legend
-  const legendHeight = 20; // Tinggi legend
-  const legendSpacing = 10;
-
-  const legendSvg = svg.append("g")
-    .attr("transform", `translate(${width / 2 - legendWidth / 2}, ${-margin.top / 2 - legendHeight - 20})`);  // Naikkan legend lebih tinggi
-
-  // Membuat skala warna untuk legend
-  const legendScale = d3.scaleLinear()
-    .domain(colorScale.domain())  // Menyesuaikan dengan domain warna
-    .range([0, legendWidth]);
-
-  // Membuat gradient untuk legend
+  const legendWidth = 200;
+  const legendHeight = 15;
   const defs = svg.append("defs");
-  const linearGradient = defs.append("linearGradient")
-    .attr("id", "legend-gradient")
-    .attr("x1", "0%")
-    .attr("x2", "100%")
-    .attr("y1", "0%")
-    .attr("y2", "0%");
 
-  linearGradient.selectAll("stop")
-    .data(d3.ticks(0, 1, 10))
+  const linearGradient = defs.append("linearGradient").attr("id", "legend-gradient");
+
+  linearGradient
+    .selectAll("stop")
+    .data(d3.range(0, 1.01, 0.01).map(t => ({
+      offset: `${t * 100}%`,
+      color: d3.interpolateBlues(t),
+    })))
     .enter()
     .append("stop")
-    .attr("offset", d => `${d * 100}%`)
-    .attr("stop-color", d => colorScale(colorScale.domain()[0] + d * (colorScale.domain()[1] - colorScale.domain()[0])));
+    .attr("offset", d => d.offset)
+    .attr("stop-color", d => d.color);
 
-  // Menambahkan kotak legend horizontal
-  legendSvg.append("rect")
+  svg.append("rect")
+    .attr("x", width / 2 - legendWidth / 2)
+    .attr("y", height + 70)
     .attr("width", legendWidth)
     .attr("height", legendHeight)
-    .style("fill", `url(#legend-gradient)`);
+    .style("fill", "url(#legend-gradient)");
 
-  // Menambahkan axis untuk legend horizontal
-  legendSvg.append("g")
-    .attr("transform", `translate(0, ${legendHeight + legendSpacing})`)  // Menambahkan jarak ke bawah untuk axis
-    .call(d3.axisBottom(legendScale)
-      .ticks(5)
-      .tickFormat(d3.format(".0f")));  // Format nilai dalam legenda
+  const legendScale = d3.scaleLinear()
+    .domain(color.domain())
+    .range([width / 2 - legendWidth / 2, width / 2 + legendWidth / 2]);
 
-  // Menambahkan keterangan "Jumlah Data"
-  legendSvg.append("text")
-    .attr("x", legendWidth / 2)
-    .attr("y", legendHeight + legendSpacing + 35)
+  svg.append("g")
+    .attr("transform", `translate(0,${height + 70})`)
+    .call(d3.axisBottom(legendScale).ticks(5).tickSize(legendHeight + 4))
+    .select(".domain")
+    .remove();
+
+  svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", height + 120)
     .attr("text-anchor", "middle")
-    .style("font-weight", "bold")  // Bold
-    .text("Jumlah Data");
+    .style("font-size", "12px")
+    .text("Skala Warna: Jumlah Orang");
 });
