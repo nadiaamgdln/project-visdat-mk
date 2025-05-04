@@ -1,0 +1,62 @@
+/* ===== css/task8.css ===== */
+body {
+    margin: 0; padding: 0;
+    background: #eef6fb;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Card putih di tengah */
+  .task-card {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  /* Container untuk nested donut */
+  #chart {
+    width: 100%;
+    height: 500px;
+    margin: 0 auto;
+  }
+  
+  /* Penjelasan indikator */
+  .indicator-info {
+    max-width: 800px;
+    margin: 20px auto 0;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 15px;
+    text-align: left;
+  }
+  .indicator-info h3 {
+    margin-top: 0;
+  }
+  .indicator-info ul {
+    padding-left: 20px;
+    line-height: 1.4;
+  }
+  
+  /* Tooltip putih untuk hover */
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    padding: 10px;
+    font-size: 13px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    text-align: left;
+  }
+  .tooltip strong {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
