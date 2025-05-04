@@ -1,0 +1,35 @@
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #f9fcff;
+  color: #333;
+  text-align: center;
+  margin: 40px;
+}
+
+h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+#chart {
+  display: flex;
+  justify-content: center;
+}
+
+.legend {
+  font-size: 14px;
+  margin-top: 20px;
+}
+
+.legend-item {
+  display: inline-block;
+  margin-right: 15px;
+}
+
+.legend-color {
+  width: 15px;
+  height: 15px;
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: middle;
+}
