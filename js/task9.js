@@ -1,6 +1,6 @@
 d3.csv("data/cleaned_data.csv").then(data => {
     const svg = d3.select("svg"),
-          margin = { top: 100, right: 30, bottom: 80, left: 60 },
+          margin = { top: 50, right: 30, bottom: 80, left: 60 },
           width = +svg.attr("width") - margin.left - margin.right,
           height = +svg.attr("height") - margin.top - margin.bottom;
   
@@ -153,4 +153,3 @@ d3.csv("data/cleaned_data.csv").then(data => {
       });
     });
   });
-  

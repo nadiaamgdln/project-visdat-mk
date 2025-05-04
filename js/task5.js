@@ -1,7 +1,7 @@
 // Set dimensions dan margin
 const margin = { top: 40, right: 30, bottom: 100, left: 60 },
-  width = 1000 - margin.left - margin.right,
-  height = 500 - margin.top - margin.bottom;
+  width = 1200 - margin.left - margin.right,
+  height = 600 - margin.top - margin.bottom;
 
 // Buat SVG
 const svg = d3
