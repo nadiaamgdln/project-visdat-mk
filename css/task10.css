@@ -8,9 +8,13 @@ body {
 }
 
 .container {
-  max-width: 1000px;
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   width: 100%;
-  background-color: #eaf3f8;
+  max-width: 1000px;
+  margin: auto;
 }
 
 h1 {
