@@ -1,7 +1,7 @@
 d3.csv("data/cleaned_data.csv").then(function(data) {
   const margin = {top: 40, right: 20, bottom: 50, left: 60},
-        width = 1000 - margin.left - margin.right,
-        height = 500 - margin.top - margin.bottom;
+        width = 700 - margin.left - margin.right,
+        height = 450 - margin.top - margin.bottom;
 
   const container = d3.select("#heatmap")
     .append("div")
@@ -104,9 +104,9 @@ d3.csv("data/cleaned_data.csv").then(function(data) {
       .attr("y", yScale(+rating) + yScale.bandwidth() / 2)
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "central")
-      .attr("font-size", "13px") // ➔ Ukuran lebih besar
-      .attr("fill", "#fff")       // ➔ Warna putih
-      .style("font-weight", "bold") // ➔ Tebal biar makin kelihatan
+      .attr("font-size", "13px")
+      .attr("fill", "#fff")     
+      .style("font-weight", "bold") 
       .text(count);
   });
 
