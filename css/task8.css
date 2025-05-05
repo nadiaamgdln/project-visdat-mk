@@ -21,6 +21,7 @@ body {
   width: 100%;
   height: 450px;
   margin-top: 10px;
+  position: relative;
 }
 
 /* Gridline horizontal */
@@ -30,18 +31,6 @@ body {
 }
 .grid path {
   stroke-width: 0;
-}
-
-/* Legend styling */
-.legend {
-  font-size: 14px;
-}
-.legend-color {
-  width: 14px;
-  height: 14px;
-  margin-right: 5px;
-  display: inline-block;
-  vertical-align: middle;
 }
 
 /* Kotak penjelasan indikator */
@@ -73,4 +62,16 @@ body {
   border-radius: 4px;
   opacity: 0;
   transition: opacity 0.2s ease;
+}
+
+/* Legend (indikator warna) */
+.legend {
+  font-size: 13px;
+}
+.legend rect {
+  stroke: #666;
+  stroke-width: 0.5;
+}
+.legend text {
+  alignment-baseline: middle;
 }
