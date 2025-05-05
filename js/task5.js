@@ -1,7 +1,7 @@
 // Set dimensions dan margin
-const margin = { top: 40, right: 30, bottom: 100, left: 60 },
-  width = 1200 - margin.left - margin.right,
-  height = 600 - margin.top - margin.bottom;
+const margin = { top: 20, right: 30, bottom: 180, left: 60 },
+  width = 1500 - margin.left - margin.right,
+  height = 700 - margin.top - margin.bottom;
 
 // Buat SVG
 const svg = d3
@@ -9,7 +9,7 @@ const svg = d3
   .append("svg")
   .attr(
     "viewBox",
-    `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom + 40}`
+    `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`
   )
   .attr("preserveAspectRatio", "xMidYMid meet")
   .append("g")
@@ -50,13 +50,16 @@ d3.csv("data/cleaned_data.csv").then((data) => {
 
   // Skala
   const x = d3
-    .scaleLinear()
-    .domain([0, d3.max(data, d => d["Number_of_Virtual_Meetings"])])
-    .range([0, width]);
+  .scaleLinear()
+  .domain([
+    d3.min(data, d => d["Number_of_Virtual_Meetings"]) - 0.5,
+    d3.max(data, d => d["Number_of_Virtual_Meetings"]) + 0.5
+  ])
+  .range([0, width]);
 
   const y = d3
     .scaleLinear()
-    .domain([1, 5]) 
+    .domain([0.5, 5.5])
     .range([height, 0]);
 
   const color = d3
@@ -91,6 +94,10 @@ d3.csv("data/cleaned_data.csv").then((data) => {
     .style("font-weight", "bold")
     .text("Tingkat Isolasi Sosial");
 
+    const radiusScale = d3.scaleSqrt()
+    .domain([0, d3.max(groupedData, d => d.count)])
+    .range([4, 20]);
+
   svg.selectAll("circle.dot")
     .data(groupedData)
     .enter()
@@ -98,7 +105,7 @@ d3.csv("data/cleaned_data.csv").then((data) => {
     .attr("class", "dot")
     .attr("cx", d => x(d.x))
     .attr("cy", d => y(d.y))
-    .attr("r", 8)
+    .attr("r", d => radiusScale(d.count))
     .attr("fill", d => color(d.count))
     .on("mouseover", (event, d) => {
       tooltip
@@ -131,8 +138,8 @@ d3.csv("data/cleaned_data.csv").then((data) => {
     .style("font-weight", "bold");
 
   // Legend
-  const legendWidth = 200;
-  const legendHeight = 15;
+  const legendWidth = 300;
+  const legendHeight = 25;
   const defs = svg.append("defs");
 
   const linearGradient = defs.append("linearGradient").attr("id", "legend-gradient");
@@ -150,7 +157,7 @@ d3.csv("data/cleaned_data.csv").then((data) => {
 
   svg.append("rect")
     .attr("x", width / 2 - legendWidth / 2)
-    .attr("y", height + 70)
+    .attr("y", height + 90)
     .attr("width", legendWidth)
     .attr("height", legendHeight)
     .style("fill", "url(#legend-gradient)");
@@ -160,15 +167,17 @@ d3.csv("data/cleaned_data.csv").then((data) => {
     .range([width / 2 - legendWidth / 2, width / 2 + legendWidth / 2]);
 
   svg.append("g")
-    .attr("transform", `translate(0,${height + 70})`)
-    .call(d3.axisBottom(legendScale).ticks(5).tickSize(legendHeight + 4))
+    .attr("transform", `translate(0,${height + 90})`)
+    .call(d3.axisBottom(legendScale).ticks(5).tickSize(legendHeight + 6))
+    .call(g => g.selectAll("text").style("font-size", "18px").style("font-weight", "bold"))
     .select(".domain")
     .remove();
 
   svg.append("text")
     .attr("x", width / 2)
-    .attr("y", height + 120)
+    .attr("y", height + 170)
     .attr("text-anchor", "middle")
-    .style("font-size", "12px")
-    .text("Skala Warna: Jumlah Orang");
+    .style("font-size", "20px")
+    .style("font-weight", "bold")
+    .text("Skala Warna: Jumlah Orang");  
 });
