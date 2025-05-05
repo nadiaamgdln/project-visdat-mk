@@ -11,7 +11,7 @@ d3.csv("data/cleaned_data.csv").then(function(data) {
 
   const colorScale = d3.scaleOrdinal()
     .domain(["daily", "weekly"])
-    .range(["#00B4D8", "#0077B6"]);
+    .range(["#00573F", "#9CAF88"]);
 
   const tooltip = d3.select("body")
     .append("div")

@@ -70,7 +70,13 @@ function drawHeatmap(data, stressLevel) {
   container
     .append("div")
     .attr("class", "heatmap-title")
-    .text(`Tingkat Stres ${stressLevel}`);
+    .text(
+      stressLevel === 1
+        ? "Tingkat Stres Rendah"
+        : stressLevel === 2
+        ? "Tingkat Stres Sedang"
+        : "Tingkat Stres Tinggi"
+    );
 
   const svg = container
     .append("svg")
@@ -130,11 +136,28 @@ function drawHeatmap(data, stressLevel) {
     .attr("transform", `translate(${padding},0)`)
     .call(d3.axisLeft(y));
 
+  svg
+    .append("text")
+    .attr("x", width / 2)
+    .attr("y", height + padding - 80)
+    .style("text-anchor", "middle")
+    .style("font-size", "14px")
+    .text("Pengalaman Kerja");
+
+  svg
+    .append("text")
+    .attr("x", -height / 2)
+    .attr("y", padding - 50)
+    .style("text-anchor", "middle")
+    .style("font-size", "14px")
+    .attr("transform", "rotate(-90)")
+    .text("Usia");
+
   // Legend
   const legendWidth = 120;
   const legendHeight = 10;
   const legendX = (width - legendWidth) / 2;
-  const legendY = height - padding + 40;
+  const legendY = height - padding + 60;
 
   const legendScale = d3
     .scaleLinear()
@@ -172,4 +195,13 @@ function drawHeatmap(data, stressLevel) {
     .call(d3.axisBottom(legendScale).ticks(4).tickSize(5))
     .select(".domain")
     .remove();
+
+  svg
+    .append("text")
+    .attr("x", width / 2)
+    .attr("y", legendY + legendHeight + 30)
+    .style("text-anchor", "middle")
+    .style("font-size", "12px")
+    .style("font-style", "italic")
+    .text("Jumlah individu");
 }

@@ -2,16 +2,27 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Heatmap Usia & Pengalaman vs Tingkat Stres</title>
+  <title>Pengaruh Usia dan Pengalaman Kerja terhadap Tingkat Stress</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <link rel="stylesheet" href="css/task2.css">
 </head>
 <body>
-  <h2>Heatmap: Usia & Pengalaman vs Tingkat Stres</h2>
-  <p>Membandingkan distribusi karyawan berdasarkan kategori umur dan pengalaman kerja untuk setiap tingkat stres.</p>
-
-  <div class="heatmap-container" id="heatmaps"></div>
+  <div id="container">
+    <h1>Task 2: Pengaruh Usia dan Pengalaman Kerja terhadap Tingkat Stress</h1>
+    <div class="heatmap-container" id="heatmaps"></div>
+  </div>
 
   <script src="js/task2.js"></script>
 </body>
+<script>
+  function resizeParent() {
+    setTimeout(() => {
+      const height = document.documentElement.scrollHeight;
+      window.parent.postMessage({ type: "setHeight", height: height }, "*");
+    }, 100); // 100 ms delay
+  }
+
+  window.addEventListener("load", resizeParent);
+  window.addEventListener("resize", resizeParent);
+</script>
 </html>

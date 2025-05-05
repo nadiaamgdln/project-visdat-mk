@@ -16,12 +16,12 @@ const categories = ["poor","average","good"];
 const levels     = [1,2,3];
 
 // palet warna baru:
-//   Level 1 (ringan) → biru muda gelap (#87CEEB)
+//   Level 1 (ringan) → hijau terang (#32CD32)
 //   Level 2 (sedang) → kuning (#FFD700)
 //   Level 3 (paling stres) → merah (#D62728)
 const color = d3.scaleOrdinal()
   .domain(levels)
-  .range(["#87CEEB", "#FFD700", "#D62728"]);
+  .range(["#32CD32", "#FFD700", "#D62728"]);
 
 // tooltip
 const tooltip = d3.select(".tooltip");
