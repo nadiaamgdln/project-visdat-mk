@@ -126,7 +126,7 @@
 
       const y = d3.scaleBand()
         .domain(ageGroups.map(d => d.label))
-        .range([padding, height - padding])
+        .range([height - padding, padding]) // <- dibalik agar usia kecil di bawah
         .padding(0.05);
 
       const maxVal = d3.max(matrix, d => d.value);
