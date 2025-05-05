@@ -1,4 +1,4 @@
-const margin = { top: 40, right: 20, bottom: 60, left: 60 };
+const margin = { top: 40, right: 120, bottom: 60, left: 60 };
 const width = 800 - margin.left - margin.right;
 const height = 500 - margin.top - margin.bottom;
 
@@ -10,13 +10,26 @@ const svg = d3
   .append("g")
   .attr("transform", `translate(${margin.left},${margin.top})`);
 
+// Tooltip
+const tooltip = d3
+  .select("body")
+  .append("div")
+  .attr("id", "tooltip")
+  .attr("class", "tooltip")
+  .style("opacity", 0);
+
+// Peta konversi angka ke label Bahasa Indonesia
+const satisfactionMap = {
+  "1": "Tidak Puas",
+  "2": "Netral",
+  "3": "Puas"
+};
+
 d3.csv("data/cleaned_data.csv").then((data) => {
-  // Filter only rows with both values filled
   const filtered = data.filter(
     (d) => d.Company_Support_for_Remote_Work && d.Satisfaction_with_Remote_Work
   );
 
-  // Count grouped values
   const nested = d3.rollups(
     filtered,
     (v) => v.length,
@@ -24,57 +37,57 @@ d3.csv("data/cleaned_data.csv").then((data) => {
     (d) => d.Satisfaction_with_Remote_Work
   );
 
-  // Flatten nested array
   const flattened = [];
-  nested.forEach(([support, values]) => {
-    values.forEach(([satisfaction, count]) => {
-      flattened.push({ support, satisfaction, count });
+  nested.forEach(([dukungan, values]) => {
+    values.forEach(([kepuasan, jumlah]) => {
+      flattened.push({
+        dukungan,
+        kepuasan,
+        jumlah
+      });
     });
   });
 
   const x0 = d3
     .scaleBand()
-    .domain([...new Set(flattened.map((d) => d.support))])
+    .domain([...new Set(flattened.map((d) => d.dukungan))])
     .range([0, width])
     .padding(0.2);
 
   const x1 = d3
     .scaleBand()
-    .domain([...new Set(flattened.map((d) => d.satisfaction))])
+    .domain(["1", "2", "3"])
     .range([0, x0.bandwidth()])
     .padding(0.05);
 
   const y = d3
     .scaleLinear()
-    .domain([0, d3.max(flattened, (d) => d.count)])
+    .domain([0, d3.max(flattened, (d) => d.jumlah)])
     .nice()
     .range([height, 0]);
 
   const color = d3
     .scaleOrdinal()
-    .domain(["Unsatisfied", "Neutral", "Satisfied"])
+    .domain(["1", "2", "3"])
     .range(["#7d9ea9", "#a2b29f", "#6e7582"]);
 
-  // X Axis
+  // Sumbu X
   svg
     .append("g")
     .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(x0))
-    .selectAll("text")
-    .attr("transform", "translate(0,5)")
-    .style("text-anchor", "middle");
+    .call(d3.axisBottom(x0));
 
-  // Y Axis
+  // Sumbu Y
   svg.append("g").call(d3.axisLeft(y));
 
-  // Axis Labels
+  // Label Sumbu
   svg
     .append("text")
     .attr("x", width / 2)
     .attr("y", height + 50)
     .style("text-anchor", "middle")
     .attr("class", "axis-label")
-    .text("Company Support for Remote Work");
+    .text("Dukungan Perusahaan terhadap Kerja Jarak Jauh");
 
   svg
     .append("text")
@@ -85,7 +98,7 @@ d3.csv("data/cleaned_data.csv").then((data) => {
     .attr("class", "axis-label")
     .text("Jumlah Karyawan");
 
-  // Bars
+  // Grup Bar
   const group = svg
     .selectAll(".group")
     .data(nested)
@@ -95,25 +108,44 @@ d3.csv("data/cleaned_data.csv").then((data) => {
   group
     .selectAll("rect")
     .data((d) =>
-      d[1].map((v) => ({ satisfaction: v[0], count: v[1], support: d[0] }))
+      d[1].map((v) => ({
+        kepuasan: v[0],
+        jumlah: v[1],
+        dukungan: d[0]
+      }))
     )
     .join("rect")
-    
-    .attr("x", (d) => x1(d.satisfaction))
-    .attr("y", (d) => y(d.count))
+    .attr("x", (d) => x1(d.kepuasan))
     .attr("width", x1.bandwidth())
-    .attr("height", (d) => height - y(d.count))
-    .attr("fill", (d) => color(d.satisfaction));
+    .attr("y", (d) => y(d.jumlah))
+    .attr("height", (d) => height - y(d.jumlah))
+    .attr("fill", (d) => color(d.kepuasan))
+    .on("mouseover", function (event, d) {
+      tooltip
+        .style("opacity", 1)
+        .html(
+          `<strong>Dukungan:</strong> ${d.dukungan}<br>
+           <strong>Kepuasan:</strong> ${satisfactionMap[d.kepuasan] || d.kepuasan}<br>
+           <strong>Jumlah:</strong> ${d.jumlah}`
+        )
+        .style("left", event.pageX + 12 + "px")
+        .style("top", event.pageY - 28 + "px");
+    })
+    .on("mousemove", function (event) {
+      tooltip
+        .style("left", event.pageX + 12 + "px")
+        .style("top", event.pageY - 28 + "px");
+    })
+    .on("mouseout", function () {
+      tooltip.style("opacity", 0);
+    });
 
-    const legend = svg
-        .append("g")
-        .attr("transform", `translate(${width + 20}, 0)`);
-
-  const satisfactionLevels = [...new Set(flattened.map((d) => d.satisfaction))];
+  // Legend
+  const legend = svg.append("g").attr("transform", `translate(${width + 20}, 0)`);
 
   legend
     .selectAll("rect")
-    .data(satisfactionLevels)
+    .data(["1", "2", "3"])
     .join("rect")
     .attr("x", 0)
     .attr("y", (d, i) => i * 22)
@@ -123,45 +155,10 @@ d3.csv("data/cleaned_data.csv").then((data) => {
 
   legend
     .selectAll("text")
-    .data(satisfactionLevels)
+    .data(["1", "2", "3"])
     .join("text")
     .attr("x", 20)
     .attr("y", (d, i) => i * 22 + 12)
-    .text((d) => d)
+    .text((d) => satisfactionMap[d])
     .attr("font-size", "13px");
 });
-
-group
-  .selectAll("rect")
-  .data((d) =>
-    d[1].map((v) => ({ satisfaction: v[0], count: v[1], support: d[0] }))
-  )
-  .join("rect")
-  .attr("x", (d) => x1(d.satisfaction))
-  .attr("width", x1.bandwidth())
-  .attr("y", (d) => y(d.count))
-  .attr("height", (d) => height - y(d.count))
-  .attr("fill", (d) => color(d.satisfaction))
-
-  // Tooltip events
-  .on("mouseover", function (event, d) {
-    d3.select("#tooltip")
-      .style("opacity", 1)
-      .html(
-        `<strong>Support:</strong> ${d.support}<br><strong>Satisfaction:</strong> ${d.satisfaction}<br><strong>Count:</strong> ${d.count}`
-      )
-      .style("left", event.pageX + 10 + "px")
-      .style("top", event.pageY - 28 + "px");
-  })
-  .on("mousemove", function (event) {
-    d3.select("#tooltip")
-      .style("left", event.pageX + 10 + "px")
-      .style("top", event.pageY - 28 + "px");
-  })
-  .on("mouseout", function () {
-    d3.select("#tooltip").style("opacity", 0);
-  });
-
-  
-
-
