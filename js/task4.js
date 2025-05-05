@@ -1,7 +1,7 @@
 d3.csv("data/cleaned_data.csv").then(function(data) {
   const margin = {top: 40, right: 20, bottom: 50, left: 60},
-        width = 700 - margin.left - margin.right,
-        height = 450 - margin.top - margin.bottom;
+        width = 800 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
 
   const container = d3.select("#heatmap")
     .append("div")
@@ -12,9 +12,9 @@ d3.csv("data/cleaned_data.csv").then(function(data) {
 
   const svg = container.append("svg")
     .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr("height", height + margin.top + margin.bottom + 20) // ditambah dikit biar ga mepet
     .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
+    .attr("transform", `translate(${margin.left},${margin.top - 20})`); // naikin grafiknya
 
   const tooltip = d3.select("body")
     .append("div")
@@ -34,35 +34,21 @@ d3.csv("data/cleaned_data.csv").then(function(data) {
     const activity = d.Physical_Activity.toLowerCase();
 
     if (hours >= 20 && hours <= 60) {
-      let bin;
-      if (hours === 60) {
-        bin = 60;
-      } else {
-        bin = Math.floor(hours / 5) * 5;
-      }
-
+      let bin = (hours === 60) ? 60 : Math.floor(hours / 5) * 5;
       const key = `${bin}_${rating}_${activity}`;
-      if (!groupedData[key]) groupedData[key] = 0;
-      groupedData[key] += 1;
+      groupedData[key] = (groupedData[key] || 0) + 1;
     }
   });
 
   const xGroups = [20, 25, 30, 35, 40, 45, 50, 55, 60];
   const yGroups = [1, 2, 3, 4, 5];
 
-  const xScale = d3.scaleBand()
-    .domain(xGroups)
-    .range([0, width])
-    .padding(0.05);
-
-  const yScale = d3.scaleBand()
-    .domain(yGroups)
-    .range([height, 0])
-    .padding(0.05);
+  const xScale = d3.scaleBand().domain(xGroups).range([0, width]).padding(0.05);
+  const yScale = d3.scaleBand().domain(yGroups).range([height, 0]).padding(0.05);
 
   const colorScale = d3.scaleOrdinal()
     .domain(["daily", "weekly"])
-    .range(["#4c1d3d", "#852e4e"]);
+    .range(["#00B4D8", "#0077B6"]); 
 
   // Draw cells
   Object.keys(groupedData).forEach(key => {
@@ -99,24 +85,21 @@ d3.csv("data/cleaned_data.csv").then(function(data) {
         d3.select(this).style("stroke", "#fff");
       });
 
-      svg.append("text")
+    svg.append("text")
       .attr("x", xScale(binNum) + xScale.bandwidth() / 2)
       .attr("y", yScale(+rating) + yScale.bandwidth() / 2)
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "central")
       .attr("font-size", "13px")
-      .attr("fill", "#fff")     
-      .style("font-weight", "bold") 
+      .attr("fill", "#fff")
+      .style("font-weight", "bold")
       .text(count);
   });
 
   // X axis
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(xScale).tickFormat(d => {
-      if (d === 60) return "60";
-      return `${d}-${d+4}`;
-    }));
+    .call(d3.axisBottom(xScale).tickFormat(d => d === 60 ? "60" : `${d}-${d+4}`));
 
   svg.append("text")
     .attr("text-anchor", "middle")
@@ -127,31 +110,31 @@ d3.csv("data/cleaned_data.csv").then(function(data) {
     .text("Hours Worked per Week");
 
   // Y axis
-  svg.append("g")
-    .call(d3.axisLeft(yScale));
-
+  svg.append("g").call(d3.axisLeft(yScale));
   svg.append("text")
     .attr("text-anchor", "middle")
     .attr("transform", "rotate(-90)")
     .attr("x", -height / 2)
-    .attr("y", -40)
+    .attr("y", -45)
     .style("font-size", "14px")
     .style("font-weight", "bold")
     .text("Work-Life Balance Rating");
 
+  // Legend
   const legend = container.append("div")
     .style("display", "flex")
     .style("justify-content", "center")
     .style("margin-top", "10px")
-    .style("gap", "20px");
-  
+    .style("gap", "15px")
+    .style("font-size", "15px");
+
   legend.append("div")
     .style("display", "flex")
     .style("align-items", "center")
-    .html(`<div style="width: 15px; height: 15px; background-color: #4c1d3d; margin-right: 5px;"></div>Daily Activity`);
-  
+    .html(`<div style="width: 18px; height: 18px; background-color: #00B4D8; margin-right: 8px; border: 1px solid #aaa;"></div>Daily Activity`);
+
   legend.append("div")
     .style("display", "flex")
     .style("align-items", "center")
-    .html(`<div style="width: 15px; height: 15px; background-color: #852e4e; margin-right: 5px;"></div>Weekly Activity`);
+    .html(`<div style="width: 18px; height: 18px; background-color: #0077B6; margin-right: 8px; border: 1px solid #aaa;"></div>Weekly Activity`);
 });
