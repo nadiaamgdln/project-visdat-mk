@@ -32,11 +32,6 @@ d3.csv("data/cleaned_data.csv").then(function(data) {
     .style("gap", "40px"); 
 
   ["daily", "weekly"].forEach(activityType => {
-    // Judul
-    container.append("h3")
-      .text(activityType.charAt(0).toUpperCase() + activityType.slice(1) + " Activity Heatmap")
-      .style("margin-bottom", "10px");
-
     // Container untuk setiap heatmap
     const container = mainContainer.append("div")
       .style("display", "flex")
@@ -44,7 +39,8 @@ d3.csv("data/cleaned_data.csv").then(function(data) {
       .style("align-items", "center")
       .style("margin-top", "10px");
 
-      container.append("h3")
+    // Judul diletakkan di atas SVG, dalam container yang sama
+    container.append("h3")
       .text(activityType.charAt(0).toUpperCase() + activityType.slice(1) + " Activity Heatmap")
       .style("margin-bottom", "10px");
 
