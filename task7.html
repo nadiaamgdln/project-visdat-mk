@@ -14,4 +14,13 @@
   <div id="tooltip" style="position: absolute; opacity: 0; background: #fff; border: 1px solid #006400; padding: 8px; border-radius: 6px; font-size: 13px; pointer-events: none;"></div>
   <script src="js/task7.js"></script>
 </body>
+<script>
+  function resizeParent() {
+    const height = document.documentElement.scrollHeight;
+    window.parent.postMessage({ type: "setHeight", height: height }, "*");
+  }
+
+  window.addEventListener("load", resizeParent);
+  window.addEventListener("resize", resizeParent);
+</script>
 </html>
